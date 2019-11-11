@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>Autenticação por face</title>
+	<meta charset="UTF-8">
+
+	<style>
+		*{
+			font-family: Arial;
+		}
+		body, form{
+			display: flex;
+			flex-direction: column;
+			flex-wrap: wrap;
+
+			justify-content: center;
+			align-items: center;
+		}
+        h2 {
+            color: #2eb453;
+        }
+		div{
+			padding: 8px;
+			border-radius: 8px;
+		}
+        video {
+            margin: 0;
+            border-radius: 16px;
+            width: 300px;
+            height: auto;
+        }
+		canvas{
+			width: 100px;
+			height: 80px;
+		}
+        button {
+            height: 32px;
+            color: #2eb453;
+            border-style: solid;
+            border-width: 2px;
+            border-color: #2eb453;
+            background-color: white;
+            font-weight: bold;
+        }
+            button:hover {
+                color: white;
+                background-color: #2eb453;
+
+            }
+	</style>
+</head>
+<body>
+
+    <h1>Autenticação pela Face</h1>
+    <h2>Grupos</h2>
+
+    <div>
+        <h3>Criar grupos</h3>
+        <form>
+            <label>Nome do Grupo (Id):</label>
+            <input id="nomeCriar" type="text" />
+            <button id="btnCriar" type="button">Criar grupo</button>
+        </form>
+    </div>
+
+    <div>
+        <h3>Deletar um grupo</h3>
+        <form>
+            <label>Nome do grupo (Id):</label>
+            <input id="nomeDeletar" type="text" />
+            <button id="btnDeletar" type="button">Deletar grupo</button>
+        </form>
+    </div>
+
+    <div>
+        <h3>Grupos já criados</h3>
+        <ul id="grupos">
+            <!-- Lista de Grupos-->
+        </ul>
+    </div>
+
+    <script  type="text/javascript" src="../js/FaceAPI.js"></script>
+    <script>
+
+        var btnCriar = document.querySelector("#btnCriar");
+        var btnDeletar = document.querySelector("#btnDeletar");
+        var nomeCriar = document.querySelector("#nomeCriar");
+        var nomeDeletar = document.querySelector("#nomeDeletar");
+        var grupos = document.querySelector("#grupos");
+
+        var lista = new XMLHttpRequest();
+        var listaURL = URL_BASE + "/persongroups";
+        lista.open("GET", listaURL);
+        lista.setRequestHeader("Ocp-Apim-Subscription-Key", CHAVE_ACESSO);
+        lista.onreadystatechange = function () {
+
+            if (lista.readyState == 4 && lista.status >= 200 && lista.status < 400) {
+
+                var resposta = JSON.parse(lista.responseText);
+
+                for (var i = 0; i < resposta.length; i++) {
+
+                    var grupo = document.createElement("li");
+                    var text = document.createTextNode(resposta[i]['personGroupId']);
+                    grupo.appendChild(text);
+                    grupos.appendChild(grupo);
+
+                }
+
+            }
+
+        }
+
+        lista.send();
+
+        btnCriar.onclick = function () {
+
+            body = {
+                "name": nomeCriar.value,
+            };
+
+            var req = new XMLHttpRequest();
+            var url = URL_BASE + "/persongroups/" + nomeCriar.value;
+            req.open("PUT", url);
+            req.setRequestHeader("Content-Type", "application/json");
+            req.setRequestHeader("Ocp-Apim-Subscription-Key", CHAVE_ACESSO);
+            req.onreadystatechange = function () {
+
+                if (req.readyState == 4 && req.status >= 200 && req.status < 400) {
+
+                    alert("Grupo criado!");
+                    window.location.reload;
+
+                }
+
+            }
+
+            req.send(JSON.stringify(body));
+
+        }
+
+        btnDeletar.onclick = function () {
+
+            var req = new XMLHttpRequest();
+            var url = URL_BASE + "/persongroups/" + nomeDeletar.value;
+            req.open("DELETE", url);
+            req.setRequestHeader("Ocp-Apim-Subscription-Key", CHAVE_ACESSO);
+            req.onreadystatechange = function () {
+
+                if (req.readyState == 4 && req.status >= 200 && req.status < 400) {
+
+                    alert("Grupo deletado!");
+                    window.location.reload;
+
+                }
+
+            }
+
+            req.send();
+
+        }
+
+    </script>
+</body>
+</html>

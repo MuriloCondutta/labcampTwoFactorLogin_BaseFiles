@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>Autenticação por face</title>
+	<meta charset="UTF-8">
+
+	<style>
+		*{
+			font-family: Arial;
+		}
+
+		body, form{
+			display: flex;
+			flex-direction: column;
+			flex-wrap: wrap;
+
+			justify-content: center;
+			align-items: center;
+		}
+
+        h2 {
+            color: #2eb453;
+        }
+
+		div{
+			padding: 8px;
+			border-radius: 8px;
+		}
+
+        video {
+            margin: 0;
+            border-radius: 16px;
+            width: 300px;
+            height: auto;
+        }
+
+		canvas{
+			width: 100px;
+			height: 80px;
+		}
+
+        button {
+            height: 32px;
+            color: #2eb453;
+            border-style: solid;
+            border-width: 2px;
+            border-color: #2eb453;
+            background-color: white;
+            font-weight: bold;
+        }
+
+            button:hover {
+                color: white;
+                background-color: #2eb453;
+
+            }
+
+        #card-carregamento {
+            width: 30%;
+            height: 70%;
+            position: absolute;
+            margin-top: 48px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+        }
+
+        @keyframes fade-animation{
+            0%, 100% {opacity: 1;}
+            50% {opacity: 0;}
+        }
+
+        #card-carregamento img {
+            animation-direction: alternate-reverse;
+            animation: fade-animation 2.0s infinite ease-in-out;
+            height: 80%;
+            width: 80%;
+        }
+	</style>
+</head>
+<body>
+
+	<h1>Autenticação pela Face</h1>
+	<h2>Cadastro</h2>
+
+	<!-- Formulário de cadastro -->
+	<form>
+
+		<div id="formInicial">
+			<div>
+				<label>Email: </label>
+				<input id="inputEmail" type="text" />
+			</div>
+			<div>
+				<label>Senha: </label>
+				<input id="inputSenha" type="password" />
+			</div>
+		</div>
+
+		<div id="formFace">
+			<!-- Elemento de captura de face -->
+			<video id="imagem-face" autoplay="autoplay"></video>
+			<canvas id="repoImage" hidden></canvas>
+		</div>
+		<button type="button" id="btnCadastrar">Tirar Foto/ Cadastrar</button>
+	</form>
+
+    <!-- Card de carregamento -->
+    <div id="card-carregamento">
+        <h2>Carregando</h2>
+        <img src="imagens/Logo_Reply_Miniatura.jpg"/>
+    </div>
+    
+	<script type="text/javascript" src="js/FaceAPI.js"></script>
+	<script>        
+
+        var cardCarregar = document.getElementById("card-carregamento");
+        cardCarregar.style.display = "none";
+
+        function mostrarCarregamento() {
+            cardCarregar.style.display = "flex";
+            document.querySelector("body").style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+        }
+
+        function esconderCarregamento() {
+            cardCarregar.style.display = "none";
+            document.querySelector("body").style.backgroundColor = "invisible";
+        }        
+
+        var formInicial = document.getElementById("formInicial");
+        var formFace = document.getElementById("formFace");
+        var btn = document.getElementById("btnCadastrar");
+        var videoPlayer = document.getElementById("imagem-face");
+        var canvas = document.querySelector("#repoImage");
+
+        if (navigator.mediaDevices.getUserMedia) {
+
+            navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } })
+                .then(function (stream) {
+
+                    videoPlayer.srcObject = stream;
+
+                })
+                .catch(function (error) {
+
+                    alert("Eita, não conseguimos carregar o vídeo. \nTente novamente mais tarde ;-(");
+
+                });
+
+        }
+
+        function tirarInstantaneo() {
+
+            var ctx = canvas.getContext("2d");            
+            ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
+        }
+
+        btnCadastrar.onclick = function () {
+
+            tirarInstantaneo();
+
+            var email = document.getElementById("inputEmail").value;
+            var senha = document.getElementById("inputSenha").value;
+
+            var usuario = {email: email, senha: senha};
+
+            if (usuario.email != null || usuario.email != "" || usuario.senha != null || usuario.senha != "") {
+
+                for (var i = 0; i < window.localStorage.length; i++) {
+                    if (window.localStorage.key(i).includes('"' + email + '"')) {
+                        alert("Você já possui cadastro! Faça o login!");
+                        window.location.assign("login.html");
+                    }
+                }
+
+                mostrarCarregamento();
+                canvas.toBlob((blob) => criarPessoaECadastrarFace(blob, usuario));
+
+            } else {
+                alert("Dados em branco!");
+            }
+        };
+
+	</script>
+</body>
+</html>
